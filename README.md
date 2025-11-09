@@ -1,94 +1,232 @@
-# Obsidian Sample Plugin
+# Darkh SRS
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+A file-based spaced repetition system for Obsidian. All scheduling data is stored in YAML frontmatter—no external database required.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+## Features
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+- **File-based storage**: All review data stored in YAML frontmatter
+- **Flexible cloze syntax**: Supports both inline (`s;text;`) and multiline cloze blocks
+- **Review View**: Customizable highlight color for hiding answer regions with smooth reveal
+- **Two workflows**:
+  - **Ad-hoc review**: Review any single note on demand
+  - **Session review**: Queue-based review of all due cards
+- **SM-2 algorithm**: Proven spaced repetition scheduling
+- **Configurable hotkeys**: Customize keyboard shortcuts for all review actions
+- **Customizable appearance**: Choose your own highlight color for hidden clozes
+- **Mobile-friendly**: Large touch targets and bottom-anchored toolbar
+- **Minimal UI**: Clean, distraction-free interface
 
-## First time developing plugins?
+## Installation
 
-Quick starting guide for new plugin devs:
+### Manual Installation
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+1. Download `main.js`, `manifest.json`, and `styles.css` from the latest release
+2. Create a folder `<vault>/.obsidian/plugins/darkh-srs/`
+3. Copy the three files into that folder
+4. Reload Obsidian
+5. Enable "Darkh SRS" in Settings → Community plugins
 
-## Releasing new releases
+### Development Installation
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+1. Clone this repo into `<vault>/.obsidian/plugins/darkh-srs/`
+2. Run `npm install` to install dependencies
+3. Run `npm run dev` to watch for changes
+4. Reload Obsidian and enable the plugin
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+## Usage
 
-## Adding your plugin to the community plugin list
+### Setting Up
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+1. Open Settings → Darkh SRS
+2. Configure your **flashcard folder** (e.g., `flashcards/`)
+3. Optionally customize the **hidden cloze color** to your preference
+4. Optionally toggle **auto-enable review mode** (on by default)
+5. Optionally adjust scheduler parameters and hotkeys
 
-## How to use
+### Creating Flashcards
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+Create markdown files in your flashcard folder. Use cloze syntax to mark answers:
 
-## Manually installing the plugin
+#### Inline Cloze
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint ./src/`
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+```markdown
+The s;Mitochondria; is the powerhouse of the cell.
 ```
 
-If you have multiple URLs, you can also do:
+#### Multiline Cloze
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+```markdown
+What are the main components of the CNS?
+
+s;
+1. The Brain
+2. The Spinal Cord
+e;
 ```
 
-## API Documentation
+### Reviewing Cards
 
-See https://github.com/obsidianmd/obsidian-api
+#### Ad-hoc Review
+
+1. Open any flashcard note
+2. Run command: **Toggle review view** (Ctrl/Cmd+P)
+3. Click **Reveal Next** to show each cloze
+4. Rate with **Again**, **Hard**, **Good**, or **Easy**
+
+#### Session Review
+
+1. Run command: **Start review session**
+2. All due cards will be queued
+3. Review each card in sequence
+4. Session auto-advances after each rating
+
+### Hotkeys
+
+The plugin provides commands that only work when Review View is active. You can assign your own keyboard shortcuts through **Settings → Hotkeys**:
+
+- **Reveal next cloze**: Show the next hidden answer
+- **Rate card as 'Again'**: Mark card as failed (review in 1 day)
+- **Rate card as 'Hard'**: Mark with minimal progress
+- **Rate card as 'Good'**: Standard SM-2 progression
+- **Rate card as 'Easy'**: Boosted progression
+
+**Suggested hotkey assignments:**
+- Space for "Reveal next cloze"
+- 1, 2, 3, 4 for the rating commands
+
+Commands automatically enable/disable based on whether Review View is active and which actions are currently available.
+
+## YAML Frontmatter
+
+The plugin stores scheduling data in your notes:
+
+```yaml
+---
+sr: true
+due: 2025-11-09
+interval: 7
+ease: 2.5
+reps: 3
+lapses: 0
+last_review: 2025-11-02
+---
+```
+
+- **due**: Next review date (ISO format)
+- **interval**: Days until next review
+- **ease**: SM-2 ease factor
+- **reps**: Successful repetitions
+- **lapses**: Times marked "Again"
+- **last_review**: Last review date
+
+## Scheduling Algorithm
+
+Uses a modified SM-2 algorithm:
+
+- **Again**: Reset progress, review in 1 day
+- **Hard**: Minimal interval increase (1.2x)
+- **Good**: Standard SM-2 progression
+- **Easy**: Boosted interval (1.3x ease factor)
+
+## Mobile Support
+
+The plugin is fully compatible with mobile:
+
+- Bottom-anchored toolbar for thumb reach
+- Large touch-friendly buttons
+- Progress banner instead of status bar
+- Responsive design
+
+## Tips
+
+- Keep your flashcard folder organized with subfolders
+- Use meaningful file names for easy identification
+- Flashcards with scheduling data automatically open in Review View (can be disabled in settings)
+- You can edit notes while in Review View
+- Clozes update automatically as you type
+- Cards with no clozes can still be rated
+
+## Troubleshooting
+
+### No cards showing in session
+
+- Check that flashcard folder is configured correctly
+- Verify folder path exists in your vault
+- Ensure notes have cloze syntax (`s;` and `e;`)
+
+### Hotkeys not working
+
+- Verify you've assigned hotkeys in **Settings → Hotkeys** (search for "Darkh")
+- Confirm Review View is active (toolbar should be visible)
+- Rating commands only work when all clozes are revealed
+- Reveal command only works when unrevealed clozes remain
+
+### Frontmatter not saving
+
+- Check file permissions
+- Verify note is not read-only
+- Look for errors in Developer Console (Ctrl+Shift+I)
+
+## Development
+
+### Building
+
+```bash
+npm install
+npm run build
+```
+
+### Watching for changes
+
+```bash
+npm run dev
+```
+
+### Project Structure
+
+```
+src/
+  main.ts                      # Plugin entry point
+  settings.ts                  # Settings and settings tab
+  types.ts                     # TypeScript interfaces
+  scheduler.ts                 # SM-2 algorithm
+  cloze-parser.ts             # Cloze syntax parser
+  yaml-service.ts             # YAML frontmatter I/O
+  insight-discovery.ts        # Find due notes
+  session-manager.ts          # Queue management
+  review-view-controller.ts   # CodeMirror 6 integration
+  hotkey-manager.ts           # Hotkey commands
+  ui/
+    review-toolbar.ts         # Toolbar component
+    session-progress.ts       # Progress indicator
+    utils.ts                  # UI utilities
+```
+
+## Privacy
+
+This plugin:
+- ✅ Operates entirely offline
+- ✅ Stores all data in your vault
+- ✅ Does not collect telemetry
+- ✅ Does not make network requests
+- ✅ Does not access files outside your vault
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Contributing
+
+Issues and pull requests welcome! Please ensure:
+- Code follows existing style
+- All TypeScript compiles without errors
+- Manual testing on desktop and mobile
+
+## Credits
+
+Built with:
+- [Obsidian API](https://github.com/obsidianmd/obsidian-api)
+- [CodeMirror 6](https://codemirror.net/)
+- [js-yaml](https://github.com/nodeca/js-yaml)
+
+Inspired by spaced repetition systems like Anki and the Obsidian community.

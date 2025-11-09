@@ -1,0 +1,14 @@
+{
+  "flashcardFolder": "flashcards",
+  "initialEase": 2.5,
+  "minEase": 1.3,
+  "maxInterval": 365,
+  "clozeHighlightColor": "#ec3427",
+  "bottomToolbar": true,
+  "largeButtons": true,
+  "hotkeyReveal": "Space",
+  "hotkeyAgain": "1",
+  "hotkeyHard": "2",
+  "hotkeyGood": "3",
+  "hotkeyEasy": "4"
+}
