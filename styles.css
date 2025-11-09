@@ -1,8 +1,158 @@
-/*
+/* Spaced Repetition Plugin Styles */
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+/* Hidden answer blocks - blurred */
+.spaced-repetition-hidden {
+	filter: blur(8px) !important;
+	user-select: none !important;
+	pointer-events: auto !important; /* Allow clicking to edit */
+	transition: filter 0.3s ease;
+	background-color: rgba(0, 0, 0, 0.05);
+	border-radius: 3px;
+}
 
-If your plugin does not need CSS, delete this file.
+/* Revealed answer blocks */
+.spaced-repetition-revealed {
+	filter: none !important;
+	transition: filter 0.3s ease;
+	background-color: rgba(0, 255, 0, 0.1);
+	border-radius: 3px;
+}
 
-*/
+/* Review mode indicator for source view */
+.spaced-repetition-review-mode {
+	position: relative;
+}
+
+/* Review controls container */
+.spaced-repetition-controls {
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	background: var(--background-primary);
+	border-bottom: 1px solid var(--background-modifier-border);
+	padding: 10px;
+	margin-bottom: 10px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Button base styles */
+.spaced-repetition-button {
+	padding: 8px 16px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--interactive-normal);
+	color: var(--text-normal);
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	transition: all 0.2s ease;
+	min-width: 80px;
+}
+
+.spaced-repetition-button:hover {
+	background: var(--interactive-hover);
+	border-color: var(--interactive-hover);
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.spaced-repetition-button:active {
+	transform: translateY(0);
+	box-shadow: none;
+}
+
+/* Reveal button */
+.spaced-repetition-reveal {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border-color: var(--interactive-accent);
+}
+
+.spaced-repetition-reveal:hover {
+	background: var(--interactive-accent-hover);
+	border-color: var(--interactive-accent-hover);
+}
+
+/* Feedback buttons */
+.spaced-repetition-feedback-buttons {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.spaced-repetition-feedback {
+	min-width: 70px;
+}
+
+/* Individual feedback button colors */
+.spaced-repetition-feedback.again {
+	background: #d32f2f;
+	color: white;
+	border-color: #d32f2f;
+}
+
+.spaced-repetition-feedback.again:hover {
+	background: #b71c1c;
+	border-color: #b71c1c;
+}
+
+.spaced-repetition-feedback.hard {
+	background: #f57c00;
+	color: white;
+	border-color: #f57c00;
+}
+
+.spaced-repetition-feedback.hard:hover {
+	background: #e65100;
+	border-color: #e65100;
+}
+
+.spaced-repetition-feedback.good {
+	background: #388e3c;
+	color: white;
+	border-color: #388e3c;
+}
+
+.spaced-repetition-feedback.good:hover {
+	background: #2e7d32;
+	border-color: #2e7d32;
+}
+
+.spaced-repetition-feedback.easy {
+	background: #1976d2;
+	color: white;
+	border-color: #1976d2;
+}
+
+.spaced-repetition-feedback.easy:hover {
+	background: #1565c0;
+	border-color: #1565c0;
+}
+
+/* Mobile-friendly adjustments */
+@media (max-width: 600px) {
+	.spaced-repetition-controls {
+		padding: 8px;
+	}
+
+	.spaced-repetition-button {
+		padding: 10px 12px;
+		font-size: 13px;
+		min-width: 70px;
+	}
+
+	.spaced-repetition-feedback-buttons {
+		gap: 6px;
+	}
+
+	.spaced-repetition-feedback {
+		min-width: 60px;
+		flex: 1 1 calc(50% - 3px);
+	}
+}
