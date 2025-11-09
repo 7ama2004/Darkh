@@ -1,8 +1,28 @@
-/*
+/* Spaced Repetition Plugin Styles */
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.spaced-repetition-control-bar {
+	font-family: var(--font-text);
+}
 
-If your plugin does not need CSS, delete this file.
+.spaced-repetition-control-bar button {
+	transition: background-color 0.2s ease;
+}
 
-*/
+.spaced-repetition-control-bar button:hover {
+	opacity: 0.9;
+}
+
+.spaced-repetition-control-bar button:active {
+	opacity: 0.8;
+}
+
+/* Mobile-friendly adjustments */
+@media (max-width: 768px) {
+	.spaced-repetition-control-bar {
+		bottom: 10px !important;
+		right: 10px !important;
+		left: 10px !important;
+		max-width: none !important;
+		width: auto !important;
+	}
+}

@@ -1,11 +1,9 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "spaced-repetition",
+	"name": "Spaced Repetition",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "File-based spaced repetition system using YAML frontmatter and ==highlight== markers.",
+	"author": "",
 	"isDesktopOnly": false
 }
