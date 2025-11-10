@@ -60,6 +60,7 @@ export class ReviewToolbar {
 			{ rating: "hard" as Rating, text: "Hard", cls: "darkh-srs-button-hard" },
 			{ rating: "good" as Rating, text: "Good", cls: "darkh-srs-button-good" },
 			{ rating: "easy" as Rating, text: "Easy", cls: "darkh-srs-button-easy" },
+			{ rating: "skip" as Rating, text: "Skip", cls: "darkh-srs-button-skip" },
 		];
 		
 		for (const config of buttonConfigs) {

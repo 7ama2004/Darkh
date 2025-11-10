@@ -26,7 +26,7 @@ export interface ReviewState {
 /**
  * Rating options for spaced repetition
  */
-export type Rating = "again" | "hard" | "good" | "easy";
+export type Rating = "again" | "hard" | "good" | "easy" | "skip";
 
 /**
  * Insight file with scheduling information
@@ -37,20 +37,30 @@ export interface InsightFile {
 }
 
 /**
- * Session state for queue management
- */
-export interface SessionState {
-	active: boolean;
-	queue: TFile[];
-	currentIndex: number;
-}
-
-/**
  * Review view state for a single editor
  */
 export interface ReviewViewState {
 	isReviewMode: boolean;
 	clozes: ClozeBlock[];
 	revealedCount: number;
+}
+
+/**
+ * A parsed flashcard block found in a note
+ */
+export interface FlashcardBlock {
+	content: string;      // Full content including start/end
+	startPos: number;     // Character position of "start"
+	endPos: number;       // Character position after "end"
+	startLine: number;    // Line number (for better UX)
+}
+
+/**
+ * Result of creating a flashcard file
+ */
+export interface FlashcardCreationResult {
+	flashcardPath: string;
+	sourceBlockId: string;
+	originalBlock: FlashcardBlock;
 }
 

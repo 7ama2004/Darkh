@@ -1,25 +1,24 @@
-import { Plugin, MarkdownView, Notice, WorkspaceLeaf } from "obsidian";
+import { Plugin, MarkdownView, Notice, TFile } from "obsidian";
 import { EditorView } from "@codemirror/view";
 import { DarkhSRSSettings, DEFAULT_SETTINGS, DarkhSRSSettingTab } from "./settings";
 import { ReviewViewController } from "./review-view-controller";
-import { SessionManager } from "./session-manager";
 import { YAMLFrontmatterService } from "./yaml-service";
 import { InsightDiscoveryService } from "./insight-discovery";
 import { Scheduler } from "./scheduler";
 import { Rating } from "./types";
 import { HotkeyManager } from "./hotkey-manager";
 import { ReviewToolbar } from "./ui/review-toolbar";
-import { SessionProgress } from "./ui/session-progress";
 import { formatDate } from "./ui/utils";
+import { FlashcardParser } from "./flashcard-parser";
+import { FlashcardCreator } from "./flashcard-creator";
+import { FlashcardLinkUpdater } from "./flashcard-link-updater";
 
 export default class DarkhSRSPlugin extends Plugin {
 	settings: DarkhSRSSettings;
 	reviewViewController: ReviewViewController;
-	sessionManager: SessionManager;
 	yamlService: YAMLFrontmatterService;
 	insightDiscovery: InsightDiscoveryService;
 	hotkeyManager: HotkeyManager;
-	sessionProgress: SessionProgress;
 	
 	// Active toolbar for current view
 	private activeToolbar: ReviewToolbar | null = null;
@@ -37,9 +36,7 @@ export default class DarkhSRSPlugin extends Plugin {
 		this.yamlService = new YAMLFrontmatterService(this.app);
 		this.insightDiscovery = new InsightDiscoveryService(this.app, this.yamlService);
 		this.reviewViewController = new ReviewViewController(this);
-		this.sessionManager = new SessionManager(this);
 		this.hotkeyManager = new HotkeyManager(this);
-		this.sessionProgress = new SessionProgress(this);
 		
 		// Register CodeMirror 6 extension
 		this.registerEditorExtension(this.reviewViewController.getExtension());
@@ -50,11 +47,13 @@ export default class DarkhSRSPlugin extends Plugin {
 		// Register hotkeys
 		this.hotkeyManager.registerHotkeys();
 		
+		// Add ribbon icon for "Go to next note"
+		this.addRibbonIcon('dice', 'Go to next note', async () => {
+			await this.goToNextNote();
+		});
+		
 		// Add settings tab
 		this.addSettingTab(new DarkhSRSSettingTab(this.app, this));
-		
-		// Listen to session events
-		this.setupSessionListeners();
 		
 		// Listen to active leaf changes to update toolbar
 		this.registerEvent(
@@ -75,12 +74,6 @@ export default class DarkhSRSPlugin extends Plugin {
 	
 	onunload() {
 		console.log("Unloading Darkh SRS plugin");
-		
-		// End any active session
-		this.sessionManager.endSession();
-		
-		// Hide session progress
-		this.sessionProgress.hide();
 		
 		// Clean up toolbar
 		if (this.activeToolbar) {
@@ -111,70 +104,25 @@ export default class DarkhSRSPlugin extends Plugin {
 			}
 		});
 		
-		// Start Review Session
+		// Go to Next Note
 		this.addCommand({
-			id: "start-review-session",
-			name: "Start review session",
+			id: "go-to-next-note",
+			name: "Go to next note",
 			callback: async () => {
-				await this.startReviewSession();
+				await this.goToNextNote();
 			}
 		});
 		
-		// End Review Session
+		// Parse Flashcards in Current Note
 		this.addCommand({
-			id: "end-review-session",
-			name: "End review session",
-			checkCallback: (checking: boolean) => {
-				const isActive = this.sessionManager.isActive();
-				
-				if (!checking && isActive) {
-					this.sessionManager.endSession(true);
-				}
-				
-				return isActive;
+			id: "parse-flashcards-in-note",
+			name: "Parse flashcards in current note",
+			callback: async () => {
+				await this.parseFlashcardsInCurrentNote();
 			}
 		});
 	}
 	
-	/**
-	 * Setup session event listeners
-	 */
-	private setupSessionListeners(): void {
-		this.sessionManager.on("session-started", (state) => {
-			const progress = this.sessionManager.getProgress();
-			this.sessionProgress.show(progress.current, progress.total);
-			
-			// Enable review mode for first file
-			const view = this.getActiveEditorView();
-			if (view) {
-				this.enableReviewMode(view);
-			}
-		});
-		
-		this.sessionManager.on("session-progress", (state) => {
-			const progress = this.sessionManager.getProgress();
-			this.sessionProgress.update(progress.current, progress.total);
-			
-			// Enable review mode for next file
-			const view = this.getActiveEditorView();
-			if (view) {
-				this.enableReviewMode(view);
-			}
-		});
-		
-		this.sessionManager.on("session-ended", (data) => {
-			this.sessionProgress.hide();
-			
-			// Optionally disable review mode
-			const view = this.getActiveEditorView();
-			if (view && this.reviewViewController.isReviewMode(view)) {
-				// Keep review mode on, just remove toolbar
-				if (this.activeToolbar) {
-					this.activeToolbar.hide();
-				}
-			}
-		});
-	}
 	
 	/**
 	 * Toggle review view for the active editor
@@ -315,6 +263,12 @@ export default class DarkhSRSPlugin extends Plugin {
 			return;
 		}
 		
+		// Handle skip - just go to next note without updating schedule
+		if (rating === "skip") {
+			await this.goToNextNote();
+			return;
+		}
+		
 		try {
 			// Read current state
 			const currentState = await this.yamlService.readScheduleState(file);
@@ -331,16 +285,8 @@ export default class DarkhSRSPlugin extends Plugin {
 			const dueStr = newState.due ? formatDate(newState.due) : "unknown";
 			new Notice(`Card rated as "${rating}". Next review: ${dueStr}`);
 			
-			// If in session, advance to next card
-			if (this.sessionManager.isActive()) {
-				await this.sessionManager.advanceSession();
-			} else {
-				// Ad-hoc mode - reveal all clozes and keep on same file
-				const view = this.getActiveEditorView();
-				if (view) {
-					this.reviewViewController.revealAll(view);
-				}
-			}
+			// Automatically go to next note after rating
+			await this.goToNextNote();
 		} catch (error) {
 			console.error("Error rating card:", error);
 			new Notice("Failed to save rating. Check console for details.");
@@ -348,9 +294,9 @@ export default class DarkhSRSPlugin extends Plugin {
 	}
 	
 	/**
-	 * Start a review session
+	 * Go to the next due note
 	 */
-	private async startReviewSession(): Promise<void> {
+	private async goToNextNote(): Promise<void> {
 		// Check if folder is configured
 		if (!this.settings.flashcardFolder || this.settings.flashcardFolder.trim() === "") {
 			new Notice("Please configure flashcards folder in settings first");
@@ -365,7 +311,6 @@ export default class DarkhSRSPlugin extends Plugin {
 		}
 		
 		// Get due cards
-		new Notice("Building review queue...");
 		const dueInsights = await this.insightDiscovery.getDueInsightFiles(this.settings.flashcardFolder);
 		
 		if (dueInsights.length === 0) {
@@ -373,9 +318,27 @@ export default class DarkhSRSPlugin extends Plugin {
 			return;
 		}
 		
-		// Start session
-		const files = dueInsights.map(insight => insight.file);
-		await this.sessionManager.startSession(files);
+		// Get current file
+		const currentFile = this.app.workspace.getActiveFile();
+		
+		// Find next card (skip current file if it's in the list)
+		let nextFile = dueInsights[0].file;
+		
+		if (currentFile) {
+			const currentIndex = dueInsights.findIndex(insight => insight.file.path === currentFile.path);
+			if (currentIndex !== -1 && currentIndex < dueInsights.length - 1) {
+				// Move to next card after current
+				nextFile = dueInsights[currentIndex + 1].file;
+			} else if (currentIndex === dueInsights.length - 1) {
+				// At the end, loop back to first or stay at current
+				new Notice("No more cards due for review! 🎉");
+				return;
+			}
+		}
+		
+		// Open the next file
+		const leaf = this.app.workspace.getLeaf(false);
+		await leaf.openFile(nextFile);
 	}
 	
 	/**
@@ -384,11 +347,6 @@ export default class DarkhSRSPlugin extends Plugin {
 	private async handleFileOpen(file: TFile): Promise<void> {
 		// Skip if auto-enable is disabled in settings
 		if (!this.settings.autoEnableReviewMode) {
-			return;
-		}
-		
-		// Skip if already in a session (session handles review mode automatically)
-		if (this.sessionManager.isActive()) {
 			return;
 		}
 		
@@ -445,6 +403,54 @@ export default class DarkhSRSPlugin extends Plugin {
 	applyClozeHighlightColor(): void {
 		// Set CSS custom property on the document root
 		document.body.style.setProperty("--darkh-cloze-color", this.settings.clozeHighlightColor);
+	}
+	
+	/**
+	 * Parse flashcards in the current note
+	 */
+	private async parseFlashcardsInCurrentNote(): Promise<void> {
+		// Get the active file
+		const file = this.app.workspace.getActiveFile();
+		if (!file) {
+			new Notice("No active file");
+			return;
+		}
+		
+		// Validate flashcard folder is configured
+		if (!this.settings.flashcardFolder || this.settings.flashcardFolder.trim() === "") {
+			new Notice("Please configure flashcard folder in settings first");
+			return;
+		}
+		
+		try {
+			// Read file content
+			const content = await this.app.vault.read(file);
+			
+			// Parse flashcard blocks
+			const blocks = FlashcardParser.parseFlashcardBlocks(content);
+			
+			if (blocks.length === 0) {
+				new Notice("No flashcard blocks found. Use 'start' and 'end' markers.");
+				return;
+			}
+			
+			// Create flashcard files
+			const creator = new FlashcardCreator(this.app, this.settings.flashcardFolder, this.settings);
+			const results = await creator.createFlashcards(blocks, file);
+			
+			// Update source file with links
+			const updater = new FlashcardLinkUpdater(this.app);
+			await updater.updateSourceFile(file, results);
+			
+			// Show success message
+			const count = results.length;
+			const plural = count === 1 ? '' : 's';
+			new Notice(`Created ${count} flashcard${plural} successfully`);
+			
+		} catch (error) {
+			console.error("Error parsing flashcards:", error);
+			new Notice(`Error: ${error.message}`);
+		}
 	}
 }
 

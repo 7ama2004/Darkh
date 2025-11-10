@@ -111,6 +111,25 @@ export class HotkeyManager {
 				return true;
 			}
 		});
+		
+		// Skip card
+		this.plugin.addCommand({
+			id: "rate-skip",
+			name: "Skip card",
+			checkCallback: (checking: boolean) => {
+				const canExecute = this.canExecuteRating();
+				
+				if (!canExecute) {
+					return false;
+				}
+				
+				if (!checking) {
+					this.plugin.handleRating("skip");
+				}
+				
+				return true;
+			}
+		});
 	}
 	
 	/**

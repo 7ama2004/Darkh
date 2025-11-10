@@ -5,7 +5,19 @@
 
 /* ==================== CLOZE STYLES ==================== */
 
-/* Hidden cloze - solid highlight with text hidden */
+/* Hidden cloze - solid highlight box widget */
+.darkh-srs-cloze-hidden-box {
+	background: var(--darkh-cloze-color, var(--text-highlight-bg));
+	border-radius: 3px;
+	padding: 2px 4px;
+	min-height: 1.2em;
+	user-select: none;
+	cursor: default;
+	vertical-align: middle;
+	margin-bottom: 0.1em;
+}
+
+/* Legacy class for mark-based decorations (kept for compatibility) */
 .darkh-srs-cloze-hidden {
 	color: transparent;
 	transition: color 0.3s ease, background 0.3s ease;
@@ -176,6 +188,10 @@
 	background: var(--background-secondary);
 }
 
+.theme-dark .darkh-srs-cloze-hidden-box {
+	background: var(--darkh-cloze-color, var(--text-highlight-bg));
+}
+
 .theme-dark .darkh-srs-cloze-hidden {
 	background: var(--darkh-cloze-color, var(--text-highlight-bg));
 }
@@ -202,6 +218,10 @@
 }
 
 /* Hover effect for hidden clozes - slight opacity change */
+.darkh-srs-cloze-hidden-box:hover {
+	opacity: 0.85;
+}
+
 .darkh-srs-cloze-hidden:hover {
 	opacity: 0.85;
 }

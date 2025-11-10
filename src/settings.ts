@@ -24,6 +24,9 @@ export interface DarkhSRSSettings {
 	// Mobile UI
 	bottomToolbar: boolean;          // Default true on mobile
 	largeButtons: boolean;           // Default true on mobile
+	
+	// Auto-enable review mode
+	autoEnableReviewMode: boolean;   // Auto-enable review mode for flashcards
 }
 
 /**
@@ -39,6 +42,8 @@ export const DEFAULT_SETTINGS: DarkhSRSSettings = {
 	
 	bottomToolbar: Platform.isMobile,
 	largeButtons: Platform.isMobile,
+	
+	autoEnableReviewMode: true,
 };
 
 /**
@@ -128,6 +133,19 @@ export class DarkhSRSSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 					// Apply the color immediately
 					this.plugin.applyClozeHighlightColor();
+				}));
+		
+		// Review behavior
+		containerEl.createEl("h3", { text: "Review behavior" });
+		
+		new Setting(containerEl)
+			.setName("Auto-enable review mode")
+			.setDesc("Automatically enable review view when opening flashcards with scheduling data")
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.autoEnableReviewMode)
+				.onChange(async (value) => {
+					this.plugin.settings.autoEnableReviewMode = value;
+					await this.plugin.saveSettings();
 				}));
 
 		// Hotkey information

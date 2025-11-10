@@ -1,8 +1,30 @@
-import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
+import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import { StateField, StateEffect, EditorState } from "@codemirror/state";
 import { ClozeParser } from "./cloze-parser";
 import { ClozeBlock, ReviewViewState } from "./types";
 import type DarkhSRSPlugin from "./main";
+
+/**
+ * Widget to display a solid box for hidden clozes
+ */
+class HiddenClozeWidget extends WidgetType {
+	constructor(private length: number) {
+		super();
+	}
+	
+	toDOM(): HTMLElement {
+		const span = document.createElement("span");
+		span.className = "darkh-srs-cloze-hidden-box";
+		
+		// Calculate approximate width based on text length
+		// Average character width ~8px, with min 40px and max 600px
+		const width = Math.max(40, Math.min(600, this.length * 8));
+		span.style.width = `${width}px`;
+		span.style.display = "inline-block";
+		
+		return span;
+	}
+}
 
 /**
  * State effect to enable review mode
@@ -97,10 +119,11 @@ const reviewStateField = StateField.define<ReviewViewState>({
 			const decorations = [];
 			for (const cloze of state.clozes) {
 				if (cloze.id >= state.revealedCount) {
-					// This cloze should be hidden
+					// This cloze should be hidden - replace with widget
+					const length = cloze.to - cloze.from;
 					decorations.push(
-						Decoration.mark({
-							class: "darkh-srs-cloze-hidden",
+						Decoration.replace({
+							widget: new HiddenClozeWidget(length),
 						}).range(cloze.from, cloze.to)
 					);
 				}
